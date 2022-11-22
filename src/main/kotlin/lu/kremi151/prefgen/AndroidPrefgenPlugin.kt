@@ -31,7 +31,9 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 
 				genTask.inputFiles = xmlFiles
 
-				genTask.packageName = extension.packageName.get() ?: variant.applicationId
+				genTask.packageName = extension.packageName.get().ifBlank {
+					variant.applicationId
+				}
 			}
 
 			variant.registerJavaGeneratingTask(taskProvider, File(rootGenSrcPath))
