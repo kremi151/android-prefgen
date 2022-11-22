@@ -13,8 +13,13 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 
 		project.android.variants.all { variant ->
 			val genTaskName = "generatePreferenceLinkSrc${variant.name.capitalize()}"
+
+			val packageName = extension.packageName.get().ifBlank {
+				variant.applicationId
+			}
+
 			val rootGenSrcPath = "${project.buildDir}/generated/source/${variant.dirName}"
-			val outputDir = File("$rootGenSrcPath/${variant.applicationId.replace(".", "/")}").also {
+			val outputDir = File("$rootGenSrcPath/${packageName.replace(".", "/")}").also {
 				it.mkdirs()
 			}
 			val taskProvider = project.tasks.register(genTaskName, AndroidPrefgenTask::class.java) { genTask ->
@@ -31,9 +36,7 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 
 				genTask.inputFiles = xmlFiles
 
-				genTask.packageName = extension.packageName.get().ifBlank {
-					variant.applicationId
-				}
+				genTask.packageName = packageName
 			}
 
 			variant.registerJavaGeneratingTask(taskProvider, File(rootGenSrcPath))
