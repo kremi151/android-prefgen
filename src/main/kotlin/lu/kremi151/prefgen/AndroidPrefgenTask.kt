@@ -14,7 +14,10 @@ import java.io.FileWriter
 internal open class AndroidPrefgenTask: DefaultTask() {
 
 	@get:OutputFile
-	lateinit var outputFile: File
+	lateinit var prefRFile: File
+
+	@get:OutputFile
+	var ktExtensionsFile: File? = null
 
 	@get:Input
 	lateinit var packageName: String
@@ -33,9 +36,16 @@ internal open class AndroidPrefgenTask: DefaultTask() {
 			} ?: listOf()
 		}
 
-		BufferedWriter(FileWriter(outputFile)).use { writer ->
+		BufferedWriter(FileWriter(prefRFile)).use { writer ->
 			generateJavaCode(writer, keysAndPrefs)
 			writer.flush()
+		}
+
+		ktExtensionsFile?.let {
+			BufferedWriter(FileWriter(it)).use { writer ->
+				generateKotlinExtensions(writer, keysAndPrefs)
+				writer.flush()
+			}
 		}
 	}
 
@@ -50,5 +60,27 @@ internal open class AndroidPrefgenTask: DefaultTask() {
 		writer.appendLine("\tprivate PrefR() {}")
 		writer.appendLine("}")
 	}
+
+	private fun generateKotlinExtensions(writer: BufferedWriter, keysAndPrefs: List<PrefKeyAndType>) {
+		writer.appendLine("package $packageName")
+		writer.appendLine("import androidx.preference.PreferenceFragmentCompat")
+
+		val uniqueXmlFileNames = keysAndPrefs.mapTo(HashSet()) { it.xmlFileName }
+		uniqueXmlFileNames.forEach { xmlFileName ->
+			val javaifiedName = xmlFileName.javaify()
+
+			writer.appendLine("open class PreferenceFragment${javaifiedName}: PreferenceFragmentCompat()")
+		}
+
+		keysAndPrefs.forEach { pref ->
+			val javaifiedName = pref.xmlFileName.javaify()
+			writer.appendLine("val PreferenceFragment${javaifiedName}.pref${pref.key.capitalize()}: ${pref.type}? get() = findPreference<${pref.type}>(\"${pref.key}\")")
+		}
+	}
+
+	private fun String.javaify(): String = this
+		.replace("\\.xml$".toRegex(), "")
+		.split("[^a-zA-Z]+".toRegex())
+		.joinToString { it.capitalize() }
 
 }

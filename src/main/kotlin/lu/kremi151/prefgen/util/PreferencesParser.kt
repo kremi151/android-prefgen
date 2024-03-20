@@ -52,27 +52,31 @@ object PreferencesParser {
 		for (i in 0 until childNodes.length) {
 			val childNode = childNodes.item(i)
 			if (TAG_PREFERENCE_SCREEN == childNode.nodeName && childNode is Element) {
-				parseRoot(childNode, keysAndPrefs)
+				parseRoot(childNode, file, keysAndPrefs)
 			}
 		}
 
 		return keysAndPrefs
 	}
 
-	private fun parsePreference(element: Element, outKeys: MutableList<PrefKeyAndType>) {
+	private fun parsePreference(element: Element, file: File, outKeys: MutableList<PrefKeyAndType>) {
 		val key: String? = element.getAttributeNS(NS_RES_AUTO, ATTR_KEY)
 		if (key?.isNotBlank() == true) {
-			outKeys.add(PrefKeyAndType(key = key, type = element.nodeName))
+			outKeys.add(PrefKeyAndType(
+				key = key,
+				type = element.nodeName,
+				xmlFileName = file.name,
+			))
 		}
 	}
 
-	private fun parseRoot(root: Element, outKeys: MutableList<PrefKeyAndType>) {
+	private fun parseRoot(root: Element, file: File, outKeys: MutableList<PrefKeyAndType>) {
 		val childNodes = preferenceTags.flatMap {
 			root.getElementsByTagName(it).toList()
 		}
 		for (node in childNodes) {
 			if (node is Element) {
-				parsePreference(node, outKeys)
+				parsePreference(node, file, outKeys)
 			} else {
 				println("Not an element: ${node.nodeName}")
 			}

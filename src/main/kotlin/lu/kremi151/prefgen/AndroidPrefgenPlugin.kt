@@ -25,7 +25,10 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 			val taskProvider = project.tasks.register(genTaskName, AndroidPrefgenTask::class.java) { genTask ->
 				genTask.group = "prefgen"
 
-				genTask.outputFile = File(outputDir, "PrefR.java")
+				genTask.prefRFile = File(outputDir, "PrefR.java")
+				if (extension.generateKotlinExtensions.getOrElse(false)) {
+					genTask.ktExtensionsFile = File(outputDir, "extensions.kt")
+				}
 
 				val xmlFiles = variant.sourceSets
 					.flatMap { it.resDirectories }
