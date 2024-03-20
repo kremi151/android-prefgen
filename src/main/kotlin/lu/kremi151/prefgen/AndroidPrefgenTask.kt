@@ -65,22 +65,28 @@ internal open class AndroidPrefgenTask: DefaultTask() {
 		writer.appendLine("package $packageName")
 		writer.appendLine("import androidx.preference.PreferenceFragmentCompat")
 
+		val uniqueTypes = keysAndPrefs.mapTo(HashSet()) { it.type }
+		uniqueTypes.forEach {
+			writer.appendLine("import androidx.preference.$it")
+		}
+
 		val uniqueXmlFileNames = keysAndPrefs.mapTo(HashSet()) { it.xmlFileName }
 		uniqueXmlFileNames.forEach { xmlFileName ->
-			val javaifiedName = xmlFileName.javaify()
+			val javaifiedName = xmlFileName.stripXmlExtension().javaify()
 
-			writer.appendLine("open class PreferenceFragment${javaifiedName}: PreferenceFragmentCompat()")
+			writer.appendLine("abstract class PreferenceFragment${javaifiedName}: PreferenceFragmentCompat()")
 		}
 
 		keysAndPrefs.forEach { pref ->
-			val javaifiedName = pref.xmlFileName.javaify()
-			writer.appendLine("val PreferenceFragment${javaifiedName}.pref${pref.key.capitalize()}: ${pref.type}? get() = findPreference<${pref.type}>(\"${pref.key}\")")
+			val javaifiedName = pref.xmlFileName.stripXmlExtension().javaify()
+			writer.appendLine("val PreferenceFragment${javaifiedName}.pref${pref.key.javaify()}: ${pref.type}? get() = findPreference<${pref.type}>(\"${pref.key}\")")
 		}
 	}
 
+	private fun String.stripXmlExtension() = this.replace("\\.xml$".toRegex(), "")
+
 	private fun String.javaify(): String = this
-		.replace("\\.xml$".toRegex(), "")
 		.split("[^a-zA-Z]+".toRegex())
-		.joinToString { it.capitalize() }
+		.joinToString("") { it.capitalize() }
 
 }
