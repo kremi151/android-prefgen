@@ -44,18 +44,20 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 				parseTask.parserOutputFile = parserOutputFile
 			}
 
-			val rootPrefRGenSrcPath = "${generatedRootDirPath}/prefr/${variant.dirName}"
-			val prefROutputDir = File("$rootPrefRGenSrcPath/${packageName.replace(".", "/")}")
-			val prefRTaskProvider = project.tasks.register(genPrefRTaskName, GeneratePrefRTask::class.java) { genTask ->
-				genTask.group = TASK_GROUP
+			if (extension.generatePrefR.getOrElse(true)) {
+				val rootPrefRGenSrcPath = "${generatedRootDirPath}/prefr/${variant.dirName}"
+				val prefROutputDir = File("$rootPrefRGenSrcPath/${packageName.replace(".", "/")}")
+				val prefRTaskProvider = project.tasks.register(genPrefRTaskName, GeneratePrefRTask::class.java) { genTask ->
+					genTask.group = TASK_GROUP
 
-				genTask.dependsOn(parserTaskProvider)
+					genTask.dependsOn(parserTaskProvider)
 
-				genTask.prefRFile = File(prefROutputDir, "PrefR.java")
-				genTask.parserCsvFile = parserOutputFile
-				genTask.packageName = packageName
+					genTask.prefRFile = File(prefROutputDir, "PrefR.java")
+					genTask.parserCsvFile = parserOutputFile
+					genTask.packageName = packageName
+				}
+				variant.registerJavaGeneratingTask(prefRTaskProvider, File(rootPrefRGenSrcPath))
 			}
-			variant.registerJavaGeneratingTask(prefRTaskProvider, File(rootPrefRGenSrcPath))
 
 			if (extension.generateFragments.getOrElse(true)) {
 				val fragmentsGenSrcPath = "${generatedRootDirPath}/fragments/${variant.dirName}"
