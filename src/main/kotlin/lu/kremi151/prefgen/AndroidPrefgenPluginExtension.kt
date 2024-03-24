@@ -4,10 +4,10 @@ import org.gradle.api.provider.Property
 
 abstract class AndroidPrefgenPluginExtension {
 	abstract val packageName: Property<String>
-	abstract val generateKotlinExtensions: Property<Boolean>
+	abstract val generateFragments: Property<Boolean>
 
 	init {
 		packageName.convention("")
-		generateKotlinExtensions.convention(false)
+		generateFragments.convention(true)
 	}
 }

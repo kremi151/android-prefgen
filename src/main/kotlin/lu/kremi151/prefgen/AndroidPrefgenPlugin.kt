@@ -2,11 +2,17 @@ package lu.kremi151.prefgen
 
 import lu.kremi151.prefgen.extensions.android
 import lu.kremi151.prefgen.extensions.variants
+import lu.kremi151.prefgen.tasks.GenerateFragmentsTask
+import lu.kremi151.prefgen.tasks.GeneratePrefRTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.io.File
 
 internal class AndroidPrefgenPlugin: Plugin<Project> {
+
+	companion object {
+		private const val TASK_GROUP = "prefgen"
+	}
 
 	override fun apply(project: Project) {
 		val extension = project.extensions.create("prefgen", AndroidPrefgenPluginExtension::class.java)
@@ -22,13 +28,10 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 			val outputDir = File("$rootGenSrcPath/${packageName.replace(".", "/")}").also {
 				it.mkdirs()
 			}
-			val taskProvider = project.tasks.register(genTaskName, AndroidPrefgenTask::class.java) { genTask ->
-				genTask.group = "prefgen"
+			val prefRTaskProvider = project.tasks.register(genTaskName, GeneratePrefRTask::class.java) { genTask ->
+				genTask.group = TASK_GROUP
 
 				genTask.prefRFile = File(outputDir, "PrefR.java")
-				if (extension.generateKotlinExtensions.getOrElse(false)) {
-					genTask.ktExtensionsFile = File(outputDir, "extensions.kt")
-				}
 
 				val xmlFiles = variant.sourceSets
 					.flatMap { it.resDirectories }
@@ -41,8 +44,27 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 
 				genTask.packageName = packageName
 			}
+			variant.registerJavaGeneratingTask(prefRTaskProvider, File(rootGenSrcPath))
 
-			variant.registerJavaGeneratingTask(taskProvider, File(rootGenSrcPath))
+			if (extension.generateFragments.getOrElse(true)) {
+				val fragmentOutputDir = File(outputDir, "fragments")
+				val fragmentTaskProvider = project.tasks.register(genTaskName, GenerateFragmentsTask::class.java) { genTask ->
+					genTask.group = TASK_GROUP
+					genTask.outputSourcesDir = fragmentOutputDir
+
+					val xmlFiles = variant.sourceSets
+						.flatMap { it.resDirectories }
+						.map { File(it, "xml") }
+						.filter { it.exists() && it.isDirectory }
+						.flatMap { it.listFiles().toList() }
+						.filter { it.isFile }
+
+					genTask.inputFiles = xmlFiles
+
+					genTask.packageName = "${packageName}.fragments"
+				}
+				variant.registerJavaGeneratingTask(fragmentTaskProvider, File(rootGenSrcPath))
+			}
 		}
 	}
 
