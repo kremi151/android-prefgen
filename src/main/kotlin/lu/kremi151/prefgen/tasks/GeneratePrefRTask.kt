@@ -4,6 +4,7 @@ import lu.kremi151.prefgen.util.PrefKeyAndType
 import lu.kremi151.prefgen.util.PreferencesParser
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.BufferedReader
@@ -20,7 +21,7 @@ internal open class GeneratePrefRTask: DefaultTask() {
 	@get:Input
 	lateinit var packageName: String
 
-	@get:Input
+	@get:InputFile
 	lateinit var parserCsvFile: File
 
 	@TaskAction
