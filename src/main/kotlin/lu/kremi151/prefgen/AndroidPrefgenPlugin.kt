@@ -52,6 +52,7 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 				genTask.dependsOn(parserTaskProvider)
 
 				genTask.prefRFile = File(prefROutputDir, "PrefR.java")
+				genTask.parserCsvFile = parserOutputFile
 				genTask.packageName = packageName
 			}
 			variant.registerJavaGeneratingTask(prefRTaskProvider, File(rootPrefRGenSrcPath))
@@ -65,6 +66,7 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 
 					genTask.dependsOn(parserTaskProvider)
 
+					genTask.parserCsvFile = parserOutputFile
 					genTask.packageName = "${packageName}.fragments"
 				}
 				variant.registerJavaGeneratingTask(fragmentTaskProvider, File(fragmentsGenSrcPath))
