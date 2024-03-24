@@ -44,12 +44,13 @@ internal open class GenerateFragmentsTask: DefaultTask() {
     }
 
     private fun generateFragment(writer: BufferedWriter, className: String, xmlFileName: String, keysAndPrefs: List<PrefKeyAndType>) {
-        writer.appendLine("package $packageName;")
+        writer.appendLine("package ${packageName}.fragments;")
         writer.appendLine("import android.os.Bundle;")
         writer.appendLine("import androidx.annotation.CallSuper;")
         writer.appendLine("import androidx.annotation.NonNull;")
         writer.appendLine("import androidx.annotation.Nullable;")
         writer.appendLine("import androidx.preference.PreferenceFragmentCompat;")
+        writer.appendLine("import ${packageName}.R;")
 
         val uniqueTypes = keysAndPrefs.mapTo(HashSet()) { it.type }
         uniqueTypes.forEach {
@@ -62,7 +63,7 @@ internal open class GenerateFragmentsTask: DefaultTask() {
         writer.appendLine("\t@CallSuper")
         writer.appendLine("\tpublic void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {")
         writer.appendLine("\t\tsetPreferencesFromResource(R.xml.${xmlFileName.withoutXmlExtension}, rootKey);")
-        writer.appendLine("\t")
+        writer.appendLine("\t}")
 
         keysAndPrefs.forEach { pref ->
             writer.appendLine("\t@NonNull")

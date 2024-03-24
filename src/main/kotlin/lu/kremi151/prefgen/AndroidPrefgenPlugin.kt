@@ -69,7 +69,7 @@ internal class AndroidPrefgenPlugin: Plugin<Project> {
 					genTask.dependsOn(parserTaskProvider)
 
 					genTask.parserCsvFile = parserOutputFile
-					genTask.packageName = "${packageName}.fragments"
+					genTask.packageName = packageName
 				}
 				variant.registerJavaGeneratingTask(fragmentTaskProvider, File(fragmentsGenSrcPath))
 			}
