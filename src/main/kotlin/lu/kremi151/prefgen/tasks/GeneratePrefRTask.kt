@@ -4,11 +4,12 @@ import lu.kremi151.prefgen.util.PrefKeyAndType
 import lu.kremi151.prefgen.util.PreferencesParser
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
+import java.io.FileReader
 import java.io.FileWriter
 
 internal open class GeneratePrefRTask: DefaultTask() {
@@ -19,18 +20,13 @@ internal open class GeneratePrefRTask: DefaultTask() {
 	@get:Input
 	lateinit var packageName: String
 
-	@get:InputFiles
-	lateinit var inputFiles: List<File>
+	@get:Input
+	lateinit var parserCsvFile: File
 
 	@TaskAction
 	fun generateSources() {
-		val keysAndPrefs = inputFiles.flatMap {
-			try {
-				PreferencesParser.tryParse(it)
-			} catch (e: Exception) {
-				logger.warn("Not a valid XML file: $it", e)
-				null
-			} ?: listOf()
+		val keysAndPrefs = BufferedReader(FileReader(parserCsvFile)).use {
+			PreferencesParser.readParserResult(it)
 		}
 
 		BufferedWriter(FileWriter(prefRFile)).use { writer ->

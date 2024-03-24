@@ -6,12 +6,9 @@ import lu.kremi151.prefgen.util.PrefKeyAndType
 import lu.kremi151.prefgen.util.PreferencesParser
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.io.BufferedWriter
-import java.io.File
-import java.io.FileWriter
+import java.io.*
 
 internal open class GenerateFragmentsTask: DefaultTask() {
 
@@ -21,21 +18,16 @@ internal open class GenerateFragmentsTask: DefaultTask() {
     @get:Input
     lateinit var packageName: String
 
-    @get:InputFiles
-    lateinit var inputFiles: List<File>
+    @get:Input
+    lateinit var parserCsvFile: File
 
     @TaskAction
     fun generateSources() {
         checkNotNull(outputSourcesDir.listFiles()) { "Not a directory: $outputSourcesDir" }
             .forEach { it.deleteRecursively() }
 
-        val keysAndPrefs = inputFiles.flatMap {
-            try {
-                PreferencesParser.tryParse(it)
-            } catch (e: Exception) {
-                logger.warn("Not a valid XML file: $it", e)
-                null
-            } ?: listOf()
+        val keysAndPrefs = BufferedReader(FileReader(parserCsvFile)).use {
+            PreferencesParser.readParserResult(it)
         }
 
         val fileToEntries = keysAndPrefs

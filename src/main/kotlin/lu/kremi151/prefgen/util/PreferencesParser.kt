@@ -2,6 +2,8 @@ package lu.kremi151.prefgen.util
 
 import lu.kremi151.prefgen.extensions.toList
 import org.w3c.dom.Element
+import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.io.File
 import java.io.FileInputStream
 import javax.xml.parsers.DocumentBuilderFactory
@@ -39,7 +41,7 @@ object PreferencesParser {
 		TAG_TWO_STATE_PREFERENCE,
 	)
 
-	fun tryParse(file: File): List<PrefKeyAndType>? {
+	fun tryParse(file: File): List<PrefKeyAndType> {
 		val builderFactory = DocumentBuilderFactory.newInstance().apply {
 			isNamespaceAware = true
 		}
@@ -57,6 +59,33 @@ object PreferencesParser {
 		}
 
 		return keysAndPrefs
+	}
+
+	fun writeParserResult(result: List<PrefKeyAndType>, writer: BufferedWriter) {
+		result.forEach {
+			writer.append(it.xmlFileName)
+			writer.append(",")
+			writer.append(it.type)
+			writer.append(",")
+			writer.append(it.key)
+			writer.appendLine()
+		}
+	}
+
+	fun readParserResult(reader: BufferedReader): List<PrefKeyAndType> {
+		return reader.useLines { seq ->
+			seq.map {
+				it.split(",")
+			}.filter {
+				it.size == 3
+			}.map {
+				PrefKeyAndType(
+					xmlFileName = it[0],
+					type = it[1],
+					key = it[2],
+				)
+			}.toList()
+		}
 	}
 
 	private fun parsePreference(element: Element, file: File, outKeys: MutableList<PrefKeyAndType>) {
